@@ -23,3 +23,19 @@ document.addEventListener('DOMContentLoaded',()=>{const buttons=[...document.que
   }catch(e){}
  }));
 })();
+/* Also resolve photos for the three newest stories without stored article IDs. */
+(async function(){
+ const cards=[...document.querySelectorAll('.story[data-resolve-title]')];
+ await Promise.all(cards.map(async card=>{
+  const cover=card.querySelector('.cover');
+  if(!cover)return;
+  try{
+   const response=await fetch('/api/article-image?title='+encodeURIComponent(card.dataset.resolveTitle));
+   if(!response.ok)return;
+   const {image}=await response.json();
+   if(!image)return;
+   const img=document.createElement('img');img.src=image;img.loading='lazy';img.alt='Original published photograph for '+card.dataset.resolveTitle;
+   img.onload=()=>{cover.replaceChildren(img);cover.classList.add('has-photo')};
+  }catch(e){}
+ }));
+})();
