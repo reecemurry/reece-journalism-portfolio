@@ -1,6 +1,14 @@
 module.exports=async function(req,res){
- const id=String(req.query.id||'');
- if(!/^\d{4,8}$/.test(id))return res.status(400).json({error:'Invalid ID'});
+ let id=String(req.query.id||'');
+ const title=String(req.query.title||'').slice(0,180);
+ if(!/^\d{4,8}$/.test(id)&&!title)return res.status(400).json({error:'Invalid ID'});
+ if(!/^\d{4,8}$/.test(id)&&title){
+  try{
+   const sr=await fetch('https://coppellstudentmedia.com/wp-json/wp/v2/search?search='+encodeURIComponent(title)+'&per_page=30');
+   if(sr.ok){const results=await sr.json();const norm=s=>s.toLowerCase().replace(/&[^;]+;/g,' ').replace(/[^a-z0-9]+/g,' ').trim();const match=results.find(x=>norm(x.title?.rendered||x.title||'')===norm(title));if(match)id=String(match.id);}
+  }catch(e){}
+  if(!/^\d{4,8}$/.test(id))return res.status(404).json({error:'Story not found'});
+ }
  try{
   const response=await fetch('https://coppellstudentmedia.com/'+id+'/',{headers:{'User-Agent':'Mozilla/5.0','Accept':'text/html'}});
   if(!response.ok)throw Error('Publisher unavailable');
