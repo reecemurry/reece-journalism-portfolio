@@ -4,3 +4,22 @@ document.addEventListener('DOMContentLoaded',()=>{const buttons=[...document.que
 
 /* Resolve remaining article URLs against the publisher's public search API when permitted. */
 (async function(){const cards=[...document.querySelectorAll('.story[data-resolve-title]')];if(!cards.length)return;const normalize=s=>s.toLowerCase().replace(/<[^>]*>/g,'').replace(/&[^;]+;/g,' ').replace(/[^a-z0-9]+/g,' ').trim();const tasks=cards.map(async card=>{const title=card.dataset.resolveTitle;try{const response=await fetch('https://coppellstudentmedia.com/wp-json/wp/v2/search?search='+encodeURIComponent(title)+'&per_page=10',{mode:'cors'});if(!response.ok)return;const results=await response.json();const match=results.find(x=>normalize(x.title)===normalize(title));if(!match?.url)return;card.href=match.url;card.querySelector('.detail').firstChild.textContent='Read original story ';const id=match.id;if(id){const media=await fetch('https://coppellstudentmedia.com/wp-json/wp/v2/posts/'+id+'?_embed=1',{mode:'cors'});if(media.ok){const post=await media.json();const m=post._embedded?.['wp:featuredmedia']?.[0];const src=m?.media_details?.sizes?.large?.source_url||m?.source_url;if(src){const cover=card.querySelector('.cover');const img=document.createElement('img');img.src=src;img.alt='Original article image for '+title;img.loading='lazy';img.addEventListener('load',()=>{cover.replaceChildren(img);cover.classList.add('has-photo')},{once:true})}}}}catch(e){/* Keep publisher search fallback when cross-origin requests are blocked. */}});await Promise.all(tasks)})();
+
+/* Same-origin image metadata avoids browser CORS restrictions on publisher pages. */
+(async function(){
+ const cards=[...document.querySelectorAll('.story[data-post-id]')];
+ await Promise.all(cards.map(async card=>{
+  const cover=card.querySelector('.cover');
+  if(!cover||cover.classList.contains('has-photo'))return;
+  try{
+   const response=await fetch('/api/article-image?id='+encodeURIComponent(card.dataset.postId));
+   if(!response.ok)return;
+   const {image}=await response.json();
+   if(!image)return;
+   const img=document.createElement('img');
+   img.src=image;img.loading='lazy';img.decoding='async';
+   img.alt='Published photograph for '+(card.querySelector('h3')?.textContent||'article');
+   img.onload=()=>{cover.replaceChildren(img);cover.classList.add('has-photo')};
+  }catch(e){}
+ }));
+})();
