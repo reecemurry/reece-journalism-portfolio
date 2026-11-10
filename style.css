@@ -21,3 +21,8 @@ footer{background:#111;color:#fff;border-top:0}footer .footer-brand strong{color
 .card.story .cover:not(.has-photo){aspect-ratio:16/9;height:auto;min-height:190px}
 .card.story{overflow:hidden}
 @media(max-width:540px){.card.story .cover.has-photo{height:auto!important;min-height:0!important}.card.story .cover.has-photo img{height:auto!important}}
+
+/* Consistent landscape editorial thumbnails; keep cards aligned on every device. */
+.card.story .cover,.card.story .cover.has-photo{width:100%!important;height:auto!important;aspect-ratio:16/9!important;min-height:0!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;background:#f2f2f2!important}
+.card.story .cover.has-photo img{width:100%!important;height:100%!important;max-height:100%!important;object-fit:cover!important;object-position:center center!important;display:block!important}
+.card.story .cover:not(.has-photo){min-height:0!important}
