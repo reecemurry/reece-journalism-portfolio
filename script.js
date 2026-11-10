@@ -1,41 +1,40 @@
-document.addEventListener('DOMContentLoaded',()=>{const buttons=[...document.querySelectorAll('[data-filter]')],input=document.querySelector('#storySearch'),cards=[...document.querySelectorAll('.story')],empty=document.querySelector('#emptyMessage');if(!input)return;let filter='All';function render(){let shown=0;for(const card of cards){const ok=(filter==='All'||card.dataset.category===filter)&&card.dataset.title.toLowerCase().includes(input.value.trim().toLowerCase());card.hidden=!ok;if(ok)shown++}if(empty)empty.hidden=shown>0}buttons.forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;buttons.forEach(x=>x.classList.toggle('selected',x===b));render()}));input.addEventListener('input',render);render()});
-/* Use each published article's own WordPress featured image, never stock artwork. */
-(async function(){const cards=[...document.querySelectorAll('.story[data-post-id]')];if(!cards.length)return;await Promise.all(cards.map(async card=>{try{const id=card.dataset.postId;const res=await fetch('https://coppellstudentmedia.com/wp-json/wp/v2/posts/'+encodeURIComponent(id)+'?_embed=1',{mode:'cors'});if(!res.ok)return;const post=await res.json();const media=post._embedded?.['wp:featuredmedia']?.[0];const src=media?.media_details?.sizes?.large?.source_url||media?.source_url;if(!src)return;const cover=card.querySelector('.cover');if(!cover)return;const img=document.createElement('img');img.src=src;img.alt='Original article image for '+card.querySelector('h3').textContent;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.addEventListener('load',()=>{cover.replaceChildren(img);cover.classList.add('has-photo')},{once:true});}catch(e){/* Retain neutral placeholder when the publisher's API is unavailable. */}}))})();
-
-/* Resolve remaining article URLs against the publisher's public search API when permitted. */
-(async function(){const cards=[...document.querySelectorAll('.story[data-resolve-title]')];if(!cards.length)return;const normalize=s=>s.toLowerCase().replace(/<[^>]*>/g,'').replace(/&[^;]+;/g,' ').replace(/[^a-z0-9]+/g,' ').trim();const tasks=cards.map(async card=>{const title=card.dataset.resolveTitle;try{const response=await fetch('https://coppellstudentmedia.com/wp-json/wp/v2/search?search='+encodeURIComponent(title)+'&per_page=10',{mode:'cors'});if(!response.ok)return;const results=await response.json();const match=results.find(x=>normalize(x.title)===normalize(title));if(!match?.url)return;card.href=match.url;card.querySelector('.detail').firstChild.textContent='Read original story ';const id=match.id;if(id){const media=await fetch('https://coppellstudentmedia.com/wp-json/wp/v2/posts/'+id+'?_embed=1',{mode:'cors'});if(media.ok){const post=await media.json();const m=post._embedded?.['wp:featuredmedia']?.[0];const src=m?.media_details?.sizes?.large?.source_url||m?.source_url;if(src){const cover=card.querySelector('.cover');const img=document.createElement('img');img.src=src;img.alt='Original article image for '+title;img.loading='lazy';img.addEventListener('load',()=>{cover.replaceChildren(img);cover.classList.add('has-photo')},{once:true})}}}}catch(e){/* Keep publisher search fallback when cross-origin requests are blocked. */}});await Promise.all(tasks)})();
-
-/* Same-origin image metadata avoids browser CORS restrictions on publisher pages. */
-(async function(){
- const cards=[...document.querySelectorAll('.story[data-post-id]')];
- await Promise.all(cards.map(async card=>{
-  const cover=card.querySelector('.cover');
-  if(!cover||cover.classList.contains('has-photo'))return;
-  try{
-   const response=await fetch('/api/article-image?id='+encodeURIComponent(card.dataset.postId));
-   if(!response.ok)return;
-   const {image}=await response.json();
-   if(!image)return;
-   const img=document.createElement('img');
-   img.src=image;img.loading='lazy';img.decoding='async';
-   img.alt='Published photograph for '+(card.querySelector('h3')?.textContent||'article');
-   img.onload=()=>{cover.replaceChildren(img);cover.classList.add('has-photo')};
-  }catch(e){}
- }));
-})();
-/* Also resolve photos for the three newest stories without stored article IDs. */
-(async function(){
- const cards=[...document.querySelectorAll('.story[data-resolve-title]')];
- await Promise.all(cards.map(async card=>{
+document.addEventListener('DOMContentLoaded',()=>{
+ const buttons=[...document.querySelectorAll('[data-filter]')];
+ const input=document.querySelector('#storySearch');
+ const cards=[...document.querySelectorAll('.story')];
+ const empty=document.querySelector('#emptyMessage');
+ if(input){
+  let filter='All';
+  const render=()=>{
+   let shown=0;
+   for(const card of cards){
+    const ok=(filter==='All'||card.dataset.category===filter)&&(card.dataset.title||'').toLowerCase().includes(input.value.trim().toLowerCase());
+    card.hidden=!ok;if(ok)shown++;
+   }
+   if(empty)empty.hidden=shown>0;
+  };
+  buttons.forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.filter;buttons.forEach(x=>x.classList.toggle('selected',x===button));render()}));
+  input.addEventListener('input',render);render();
+ }
+ const load=async card=>{
   const cover=card.querySelector('.cover');
   if(!cover)return;
+  const id=card.dataset.postId;
+  const title=card.dataset.resolveTitle;
+  if(!id&&!title)return;
+  const query=id?'id='+encodeURIComponent(id):'title='+encodeURIComponent(title);
   try{
-   const response=await fetch('/api/article-image?title='+encodeURIComponent(card.dataset.resolveTitle));
+   const response=await fetch('/api/article-image?'+query);
    if(!response.ok)return;
-   const {image}=await response.json();
-   if(!image)return;
-   const img=document.createElement('img');img.src=image;img.loading='lazy';img.alt='Original published photograph for '+card.dataset.resolveTitle;
+   const data=await response.json();
+   if(data.url&&title&&data.url.startsWith('https://coppellstudentmedia.com/'))card.href=data.url;
+   if(!data.image)return;
+   const img=new Image();
+   img.loading='lazy';img.decoding='async';
+   img.alt='Original published photograph for '+(card.querySelector('h3')?.textContent||'article');
    img.onload=()=>{cover.replaceChildren(img);cover.classList.add('has-photo')};
+   img.src=data.image;
   }catch(e){}
- }));
-})();
+ };
+ cards.forEach(load);
+});
