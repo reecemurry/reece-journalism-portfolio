@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const query=id?'id='+encodeURIComponent(id):'title='+encodeURIComponent(title);
   try{
    const response=await fetch('/api/article-image?'+query);
-   if(!response.ok)return;
+   if(!response.ok)throw Error('Server image unavailable');
    const data=await response.json();
    if(data.url&&title&&data.url.startsWith('https://coppellstudentmedia.com/'))card.href=data.url;
    if(!data.image)return;
@@ -34,7 +34,16 @@ document.addEventListener('DOMContentLoaded',()=>{
    img.alt='Original published photograph for '+(card.querySelector('h3')?.textContent||'article');
    img.onload=()=>{cover.replaceChildren(img);cover.classList.add('has-photo')};
    img.src=data.image;
-  }catch(e){}
+  }catch(e){
+   if(id){
+    try{
+     const r=await fetch('https://coppellstudentmedia.com/wp-json/wp/v2/posts/'+id+'?_embed=1');
+     if(r.ok){const p=await r.json();const m=p._embedded?.['wp:featuredmedia']?.[0];const image=m?.media_details?.sizes?.large?.source_url||m?.source_url||p.jetpack_featured_media_url;
+      if(image){const img=new Image();img.loading='lazy';img.alt='Original published article photograph';img.onload=()=>{cover.replaceChildren(img);cover.classList.add('has-photo')};img.src=image;}
+     }
+    }catch(ignore){}
+   }
+  }
  };
  cards.forEach(load);
 });
