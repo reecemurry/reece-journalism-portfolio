@@ -46,13 +46,21 @@ module.exports=async function(req,res){
     const imgs=html.match(/<img\b[^>]*>/gi)||[];
     for(const tag of imgs){
      const cls=attr(tag,'class');
-     if(/(featured|attachment|story|article|wp-post-image|hero)/i.test(cls)){
+     if(/(featured|attachment|story|article|wp-post-image|hero|size-full|size-large|aligncenter)/i.test(cls)){
       image=good(attr(tag,'data-src'))||good(attr(tag,'src'));
       if(image)break;
      }
     }
    }
   }
+  if(!image&&post?.content?.rendered){
+   const imgs=post.content.rendered.match(/<img\\b[^>]*>/gi)||[];
+   for(const tag of imgs){
+    image=good(attr(tag,'data-src'))||good(attr(tag,'src'))||good(attr(tag,'data-lazy-src'));
+    if(image)break;
+   }
+  }
+  if(!image&&post?.jetpack_featured_media_url)image=good(post.jetpack_featured_media_url);
   if(!image)return res.status(404).json({error:'No original image available',url});
   res.setHeader('Cache-Control','public, s-maxage=3600, stale-while-revalidate=86400');
   return res.status(200).json({image,url});
