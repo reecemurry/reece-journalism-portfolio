@@ -46,3 +46,8 @@ footer{background:#111;color:#fff;border-top:0}footer .footer-brand strong{color
 
 /* Ensure pagination and filters actually hide nonmatching cards despite .card display styles. */
 .card.story[hidden]{display:none!important}
+
+/* Home: soft editorial featured-work treatment */
+.featured-kicker{font-family:Georgia,'Times New Roman',serif;font-size:18px;font-style:italic;color:#b82067;letter-spacing:0;text-transform:none;font-weight:400}
+.sectionhead h2{margin-top:8px}
+.home-featured-placeholder{display:none}
