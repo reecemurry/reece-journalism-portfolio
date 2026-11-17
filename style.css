@@ -43,3 +43,6 @@ footer{background:#111;color:#fff;border-top:0}footer .footer-brand strong{color
 .story-pagination button:focus-visible{outline:2px solid #d43b81;outline-offset:2px}
 
 .story-links{display:flex;align-items:center;flex-wrap:wrap;gap:9px}.story-links a{color:inherit;text-decoration:none}.story-links a:hover{text-decoration:underline}.story-links a:focus-visible{outline:2px solid #d43b81;outline-offset:2px}
+
+/* Ensure pagination and filters actually hide nonmatching cards despite .card display styles. */
+.card.story[hidden]{display:none!important}
