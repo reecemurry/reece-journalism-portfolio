@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const empty=document.querySelector('#emptyMessage');
  if(input){
   let filter='All',page=1;
-  const perPage=9;
+  const perPage=6;
   const pager=document.getElementById('storyPagination');
   const render=()=>{
    const matches=cards.filter(card=>(filter==='All'||card.dataset.category===filter)&&(card.dataset.title||'').toLowerCase().includes(input.value.trim().toLowerCase()));
