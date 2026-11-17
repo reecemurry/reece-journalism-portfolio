@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    const response=await fetch('/api/article-image?'+query);
    if(!response.ok)throw Error('Server image unavailable');
    const data=await response.json();
-   if(data.url&&title&&data.url.startsWith('https://coppellstudentmedia.com/'))card.href=data.url;
+   if(data.url&&title&&data.url.startsWith('https://coppellstudentmedia.com/'))(card.querySelector('.story-link')||card).href=data.url;
    if(!data.image)return;
    const img=new Image();
    img.loading='lazy';img.decoding='async';
