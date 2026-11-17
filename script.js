@@ -4,17 +4,33 @@ document.addEventListener('DOMContentLoaded',()=>{
  const cards=[...document.querySelectorAll('.story')];
  const empty=document.querySelector('#emptyMessage');
  if(input){
-  let filter='All';
+  let filter='All',page=1;
+  const perPage=9;
+  const pager=document.getElementById('storyPagination');
   const render=()=>{
-   let shown=0;
-   for(const card of cards){
-    const ok=(filter==='All'||card.dataset.category===filter)&&(card.dataset.title||'').toLowerCase().includes(input.value.trim().toLowerCase());
-    card.hidden=!ok;if(ok)shown++;
+   const matches=cards.filter(card=>(filter==='All'||card.dataset.category===filter)&&(card.dataset.title||'').toLowerCase().includes(input.value.trim().toLowerCase()));
+   const pages=Math.ceil(matches.length/perPage);
+   page=Math.max(1,Math.min(page,pages||1));
+   cards.forEach(card=>{card.hidden=true});
+   matches.slice((page-1)*perPage,page*perPage).forEach(card=>{card.hidden=false});
+   if(empty)empty.hidden=matches.length>0;
+   if(pager){
+    pager.replaceChildren();
+    if(pages>1){
+     const make=(label,target,disabled,current=false)=>{
+      const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=disabled;b.className=current?'selected':'';
+      if(current)b.setAttribute('aria-current','page');
+      b.addEventListener('click',()=>{page=target;render();document.querySelector('.filters')?.scrollIntoView({behavior:'smooth',block:'start'})});
+      pager.append(b);
+     };
+     make('Previous',page-1,page===1);
+     for(let i=1;i<=pages;i++)make(String(i),i,false,i===page);
+     make('Next',page+1,page===pages);
+    }
    }
-   if(empty)empty.hidden=shown>0;
   };
-  buttons.forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.filter;buttons.forEach(x=>x.classList.toggle('selected',x===button));render()}));
-  input.addEventListener('input',render);render();
+  buttons.forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.filter;page=1;buttons.forEach(x=>x.classList.toggle('selected',x===button));render()}));
+  input.addEventListener('input',()=>{page=1;render()});render();
  }
  const load=async card=>{
   const cover=card.querySelector('.cover');
