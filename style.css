@@ -41,3 +41,5 @@ footer{background:#111;color:#fff;border-top:0}footer .footer-brand strong{color
 .story-pagination button.selected{background:#191919;color:white;border-color:#191919}
 .story-pagination button:disabled{opacity:.35;cursor:not-allowed}
 .story-pagination button:focus-visible{outline:2px solid #d43b81;outline-offset:2px}
+
+.story-links{display:flex;align-items:center;flex-wrap:wrap;gap:9px}.story-links a{color:inherit;text-decoration:none}.story-links a:hover{text-decoration:underline}.story-links a:focus-visible{outline:2px solid #d43b81;outline-offset:2px}
