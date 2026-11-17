@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded',()=>{
    const matches=cards.filter(card=>(filter==='All'||card.dataset.category===filter)&&(card.dataset.title||'').toLowerCase().includes(input.value.trim().toLowerCase()));
    const pages=Math.ceil(matches.length/perPage);
    page=Math.max(1,Math.min(page,pages||1));
-   cards.forEach(card=>{card.hidden=true});
-   matches.slice((page-1)*perPage,page*perPage).forEach(card=>{card.hidden=false});
+   cards.forEach(card=>{card.hidden=true;card.style.setProperty('display','none','important')});
+   matches.slice((page-1)*perPage,page*perPage).forEach(card=>{card.hidden=false;card.style.removeProperty('display')});
    if(empty)empty.hidden=matches.length>0;
    if(pager){
     pager.replaceChildren();
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded',()=>{
      const make=(label,target,disabled,current=false)=>{
       const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=disabled;b.className=current?'selected':'';
       if(current)b.setAttribute('aria-current','page');
-      b.addEventListener('click',()=>{page=target;render();document.querySelector('.filters')?.scrollIntoView({behavior:'smooth',block:'start'})});
+      b.addEventListener('click',()=>{page=target;render()});
       pager.append(b);
      };
      make('Previous',page-1,page===1);
